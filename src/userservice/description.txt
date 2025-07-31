@@ -1,6 +1,0 @@
-This is a weefly webapp's user service where the user's account will be manged.
-Technologies used in the backend are,
-Cloudinary-KYC document storing
-No SQL Database-Mongo DB
-Nodemailer for Email Sending
-Email login weeflytestmail@gmail.com and password weefly2025
