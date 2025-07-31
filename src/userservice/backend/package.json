@@ -1,0 +1,39 @@
+{
+  "name": "userservice",
+  "version": "1.0.0",
+  "description": "Weefly User/Agent Service Backend functionality",
+  "license": "ISC",
+  "author": "Hariraghav.S",
+  "type": "commonjs",
+  "main": "Server.js",
+  "scripts": {
+    "test": "node server.js",
+    "start": "node server.js",
+    "prod": "cross-env NODE_ENV=production CRON=yes node Server.js"
+  },
+  "dependencies": {
+    "amadeus": "^11.0.0",
+    "axios": "^1.9.0",
+    "bcryptjs": "^3.0.2",
+    "body-parser": "^2.2.0",
+    "cloudinary": "^2.6.1",
+    "compromise": "^14.14.4",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "country-code-lookup": "^0.1.3",
+    "cross-env": "^10.0.0",
+    "crypto": "^1.0.1",
+    "dotenv": "^16.5.0",
+    "express": "^5.1.0",
+    "fs": "^0.0.1-security",
+    "jsonwebtoken": "^9.0.2",
+    "mime-types": "^3.0.1",
+    "moment": "^2.30.1",
+    "mongodb": "^6.16.0",
+    "mongoose": "^8.14.1",
+    "node-cron": "^4.2.1",
+    "nodemailer": "^7.0.3",
+    "path": "^0.12.7",
+    "uuid": "^11.1.0"
+  }
+}
