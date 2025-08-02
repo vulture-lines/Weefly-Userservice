@@ -42,7 +42,9 @@ exports.userSignup = async (req, res) => {
 
     if (
       existinguser !== null &&
-      (existinguser.Usertype === "Agent" || existinguser.Usertype === "User")
+      (existinguser.Usertype === "Agent" ||
+        existinguser.Usertype === "User" ||
+        existinguser.Usertype === "Guest")
     ) {
       return res.status(409).json({ message: "Email already exists" });
     }
@@ -57,7 +59,20 @@ exports.userSignup = async (req, res) => {
     });
 
     await newuser.save();
-    return res.status(201).json({ message: "User Registered Successfully!!" });
+    const id = newuser.Emailaddress;
+    const userId = newuser.id;
+    const token = await Jwttokengenerator.Usertokengenerator(id, userId);
+    const key = await getKey();
+    const encryptedtoken = cookieencrypt(token, key);
+    res
+      .status(201)
+      .cookie("userjwt", encryptedtoken, {
+        maxAge: 60 * 60 * 1000,
+        path: "/",
+      })
+      .send("Signup Successful!!");
+
+    // return res.status(201).json({ message: "User Registered Successfully!!" });
   } catch (error) {
     console.error("Error in User Signup" + error);
     return res.status(500).json({ message: "Internal Server Error" });
@@ -87,8 +102,8 @@ exports.userSignin = async (req, res) => {
           existinguser.Status === "Active"
         ) {
           const id = existinguser.Emailaddress;
-          const userId=existinguser.id;
-          const token = await Jwttokengenerator.Usertokengenerator(id,userId);
+          const userId = existinguser.id;
+          const token = await Jwttokengenerator.Usertokengenerator(id, userId);
           const key = await getKey();
           const encryptedtoken = cookieencrypt(token, key);
           res
@@ -109,7 +124,7 @@ exports.userSignin = async (req, res) => {
       );
       if (!existinguser) {
         res.status(400).send("User doesn't exist");
-      } 
+      }
       // Google Setup
       else {
         if (
@@ -313,7 +328,6 @@ exports.sendRequestDetails = async (req, res) => {
 
 // Get User Details by ID for Profile
 exports.getUserProfileDetails = async (req, res) => {
-
   try {
     if (req.cookies.userjwt) {
       const userjwt = req.cookies.userjwt;
