@@ -42,18 +42,18 @@ const allowedOrigins = [
 
 
 // Middleware to reject requests with unauthorized origin
-app.use((req, res, next) => {
-  const origin = req.headers.origin || req.headers.referer;
-  if (req.path.startsWith("/userapi/get")) {
-    return next();
-  }
+// app.use((req, res, next) => {
+//   const origin = req.headers.origin || req.headers.referer;
+//   if (req.path.startsWith("/userapi/get")) {
+//     return next();
+//   }
 
-  if (allowedOrigins.includes(origin)) {
-    next(); // origin is allowed
-  } else {
-    res.status(401).json({ message: "Unauthorized" });
-  }
-});
+//   if (allowedOrigins.includes(origin)) {
+//     next(); // origin is allowed
+//   } else {
+//     res.status(401).json({ message: "Unauthorized" });
+//   }
+// });
 
 // Apply CORS only for allowed origins
 app.use(
