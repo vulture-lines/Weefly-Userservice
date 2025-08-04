@@ -3,7 +3,7 @@ name: Deploy Userservice Backend to EC2 (Full Replace)
 on:
   push:
     branches:
-      - main  # Adjust if using a different branch
+      - main  # Trigger deployment when pushing to main
 
 jobs:
   deploy:
@@ -13,31 +13,34 @@ jobs:
       - name: 📥 Checkout Code
         uses: actions/checkout@v4
 
-      - name: 🔐 Setup EC2 SSH Key
+      - name: 🔐 Add EC2 SSH Key
         run: |
           echo "${{ secrets.EC2_SSH_KEY }}" > key.pem
           chmod 600 key.pem
 
-      - name: 🧹 Delete Old Backend on EC2
+      - name: 🧹 Delete Old Backend Folder on EC2
         run: |
-          ssh -i key.pem -o StrictHostKeyChecking=no ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOSTNAME }} \
-            "rm -rf /home/${{ secrets.EC2_USERNAME }}/Weefly-Userservice/src/userservice/backend"
+          ssh -i key.pem -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} \
+            "rm -rf /home/${{ secrets.EC2_USER }}/Weefly-Userservice/src/userservice/backend"
 
-      - name: 📦 Upload New Backend to EC2
+      - name: 📦 Upload New Backend Folder to EC2
         run: |
           scp -i key.pem -o StrictHostKeyChecking=no -r src/userservice/backend \
-            ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOSTNAME }}:/home/${{ secrets.EC2_USERNAME }}/Weefly-Userservice/src/userservice/
+            ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/home/${{ secrets.EC2_USER }}/Weefly-Userservice/src/userservice/
 
-      - name: 🚀 Install Dependencies & Start App with PM2
+      - name: 🚀 Install & Restart Node.js App with PM2 in Production Mode
         run: |
-          ssh -i key.pem -o StrictHostKeyChecking=no ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOSTNAME }} << 'EOF'
-            cd /home/${{ secrets.EC2_USERNAME }}/Weefly-Userservice/src/userservice/backend/
+          ssh -i key.pem -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << EOF
+            cd /home/${{ secrets.EC2_USER }}/Weefly-Userservice/src/userservice/backend
+
+            echo "Installing dependencies..."
             npm install
-            if pm2 describe user-service > /dev/null; then
-              echo "🔁 Restarting PM2 process: user-service"
-              pm2 restart user-service
-            else
-              echo "🚀 Starting PM2 process: user-service"
-              pm2 start npm --name "user-service" -- run prod
-            fi
+
+            echo "Restarting user-service with PM2 in NODE_ENV=prod mode..."
+            pm2 stop user-service || true
+            pm2 delete user-service || true
+
+            NODE_ENV=prod pm2 start Server.js --name user-service
+
+            pm2 save
           EOF
