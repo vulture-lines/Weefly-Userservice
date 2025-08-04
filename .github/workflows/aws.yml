@@ -22,26 +22,17 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
 
-      - name: Deploy to EC2
+      - name: Deploy code to EC2 using rsync
+        run: |
+          rsync -avz -e "ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa" \
+            ./src/userservice/backend/ \
+            ubuntu@${{ secrets.EC2_HOST }}:/home/ubuntu/Weefly-Userservice/src/userservice/backend/
+
+      - name: Restart UserService on EC2
         run: |
           ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ubuntu@${{ secrets.EC2_HOST }} << 'EOF'
-            cd /home/ubuntu/Weefly-Userservice
-
-            # Discard any local changes (be careful!)
-            git reset --hard HEAD
-            git clean -fd
-            git pull origin main
-
-            # Fix file permissions
-            sudo chown -R ubuntu:ubuntu .
-            chmod -R u+rw .
-
-            cd src/userservice/backend
-
-            # Install dependencies
+            cd /home/ubuntu/Weefly-Userservice/src/userservice/backend
             npm install
-
-            # Restart the app with PM2
             pm2 delete user-service || true
             pm2 start npm --name "user-service" -- run prod
           EOF
