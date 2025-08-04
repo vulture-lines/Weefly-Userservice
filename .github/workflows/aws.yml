@@ -15,6 +15,15 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      - name: Debug working directory and file list
+        run: |
+          echo "Current directory:"
+          pwd
+          echo "Root files:"
+          ls -la
+          echo "UserService backend files:"
+          ls -la ./src/userservice/backend/
+
       - name: Setup SSH
         run: |
           mkdir -p ~/.ssh
@@ -24,15 +33,21 @@ jobs:
 
       - name: Deploy code to EC2 using rsync
         run: |
-          rsync -avz -e "ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa" \
+          rsync -avz --delete -e "ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa" \
             ./src/userservice/backend/ \
             ubuntu@${{ secrets.EC2_HOST }}:/home/ubuntu/Weefly-Userservice/src/userservice/backend/
 
       - name: Restart UserService on EC2
         run: |
           ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ubuntu@${{ secrets.EC2_HOST }} << 'EOF'
+            echo "Contents of server.js after deployment:"
+            cat /home/ubuntu/Weefly-Userservice/src/userservice/backend/server.js
+
             cd /home/ubuntu/Weefly-Userservice/src/userservice/backend
             npm install
+
+            echo "Restarting user-service using PM2..."
             pm2 delete user-service || true
             pm2 start npm --name "user-service" -- run prod
-          EOF
+            pm2 save
+EOF
