@@ -1,45 +1,41 @@
-name: Deploy Userservice Backend to EC2 via PM2
+name: Deploy Userservice Backend to EC2 (Full Replace)
 
 on:
   push:
     branches:
-      - main  # Adjust if needed
+      - main  # Change if using a different branch
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: 📥 Checkout Source Code
+      - name: 📥 Checkout Code
         uses: actions/checkout@v4
 
-      - name: 🔐 Setup SSH Key
+      - name: 🔐 Add EC2 SSH Key
         run: |
           echo "${{ secrets.EC2_SSH_KEY }}" > key.pem
           chmod 600 key.pem
 
-      - name: 🧹 Remove Existing Backend on EC2
+      - name: 🧹 Delete Old Backend Folder on EC2
         run: |
           ssh -i key.pem -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} \
-            "rm -rf /home/${{ secrets.EC2_USER }}/Weefly-Userservice/src/userservice/backend/*"
+            "rm -rf /home/${{ secrets.EC2_USER }}/Weefly-Userservice/src/userservice/backend"
 
-      - name: 📦 Upload Backend Folder to EC2
+      - name: 📦 Upload New Backend Folder to EC2
         run: |
-          scp -i key.pem -o StrictHostKeyChecking=no -r src/userservice/backend/ \
-            ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/home/${{ secrets.EC2_USER }}/Weefly-Userservice/src/userservice/backend/
+          scp -i key.pem -o StrictHostKeyChecking=no -r src/userservice/backend \
+            ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/home/${{ secrets.EC2_USER }}/Weefly-Userservice/src/userservice/
 
-      - name: 🚀 Install & Restart Node App using PM2 (user-service)
+      - name: 🚀 Install & Restart Node.js App with PM2
         run: |
           ssh -i key.pem -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
             cd /home/${{ secrets.EC2_USER }}/Weefly-Userservice/src/userservice/backend/
             npm install
-
-            # Restart or start the app using PM2 with name 'user-service'
             if pm2 describe user-service > /dev/null; then
-              echo "🔁 Restarting existing PM2 process: user-service"
               pm2 restart user-service
             else
-              echo "🚀 Starting new PM2 process: user-service"
               pm2 start Server.js --name user-service
             fi
           EOF
