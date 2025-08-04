@@ -15,15 +15,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Debug working directory and file list
-        run: |
-          echo "Current directory:"
-          pwd
-          echo "Root files:"
-          ls -la
-          echo "UserService backend files:"
-          ls -la ./src/userservice/backend/
-
       - name: Setup SSH
         run: |
           mkdir -p ~/.ssh
@@ -31,23 +22,27 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
 
-      - name: Deploy code to EC2 using rsync
-        run: |
-          rsync -avz --delete -e "ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa" \
-            ./src/userservice/backend/ \
-            ubuntu@${{ secrets.EC2_HOST }}:/home/ubuntu/Weefly-Userservice/src/userservice/backend/
-
-      - name: Restart UserService on EC2
+      - name: Deploy to EC2
         run: |
           ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ubuntu@${{ secrets.EC2_HOST }} << 'EOF'
-            echo "Contents of server.js after deployment:"
-            cat /home/ubuntu/Weefly-Userservice/src/userservice/backend/server.js
+            cd /home/ubuntu/Weefly-Userservice/
 
-            cd /home/ubuntu/Weefly-Userservice/src/userservice/backend
+            # Discard any local changes that would block git pull
+            git reset --hard HEAD
+
+            # Pull latest changes from repo
+            git pull origin main
+
+            # Fix file permissions
+            sudo chown -R ubuntu:ubuntu .
+            chmod -R u+rw .
+
+            cd src/userservice/backend
+            
+            # Install dependencies
             npm install
 
-            echo "Restarting user-service using PM2..."
+            # Restart the app with PM2
             pm2 delete user-service || true
             pm2 start npm --name "user-service" -- run prod
-            pm2 save
-EOF
+          EOF
