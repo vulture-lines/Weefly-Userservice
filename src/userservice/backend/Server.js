@@ -38,22 +38,8 @@ const allowedOrigins = [
   "http://localhost:3000",
 ];
 
-
-
-
 // Middleware to reject requests with unauthorized origin
-// app.use((req, res, next) => {
-//   const origin = req.headers.origin || req.headers.referer;
-//   if (req.path.startsWith("/userapi/get")) {
-//     return next();
-//   }
 
-//   if (allowedOrigins.includes(origin)) {
-//     next(); // origin is allowed
-//   } else {
-//     res.status(401).json({ message: "Unauthorized" });
-//   }
-// });
 
 // Apply CORS only for allowed origins
 app.use(
@@ -67,8 +53,8 @@ app.use(
 app.use(bodyParser.json({ limit: "10mb" }));
 app.use(bodyParser.urlencoded({ limit: "10mb", extended: true }));
 app.use(cookieParser());
-app.get("/userapi/get",async (req,res) => {
-  return res.status(200).send("Pipeline check 11")
+app.get("/userapi/get", async (req, res) => {
+  return res.status(200).send("Pipeline check 11");
 });
 app.use("/userapi", userRoute);
 app.use("/userapi", otpRoute);
