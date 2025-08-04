@@ -41,10 +41,9 @@ const allowedOrigins = [
 // Middleware to reject requests with unauthorized origin
 app.use((req, res, next) => {
   const origin = req.headers.origin || req.headers.referer;
-  if (req.path.startsWith("/userapi/check")) {
+  if (req.path.startsWith("/userapi/get")) {
     return next();
   }
-
   if (allowedOrigins.includes(origin)) {
     next(); // origin is allowed
   } else {
@@ -64,9 +63,7 @@ app.use(
 app.use(bodyParser.json({ limit: "10mb" }));
 app.use(bodyParser.urlencoded({ limit: "10mb", extended: true }));
 app.use(cookieParser());
-app.get("/userapi/check", async (req, res) => {
-  return res.status(200).send("Pipeline check 112");
-});
+
 app.use("/userapi", userRoute);
 app.use("/userapi", otpRoute);
 app.use("/userapi", agentRoute);
@@ -75,7 +72,9 @@ app.use("/userapi", pannelAccessRoutes);
 app.use("/userapi", notificationRoute);
 app.use("/userapi", guestRoute);
 app.use("/userapi", getUserDetailRoute);
-
+app.get("/userapi/check", async (req, res) => {
+  return res.status(200).send("Pipeline check 1133");
+});
 app.use("/kycdocuments", express.static(kycdocumentdirectory));
 
 connectDb();
