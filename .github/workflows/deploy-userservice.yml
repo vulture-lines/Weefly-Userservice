@@ -28,7 +28,6 @@ jobs:
             cd /home/ubuntu/Weefly-Userservice/
 
            
-
             # Pull latest changes from repo
             git pull origin main
 
