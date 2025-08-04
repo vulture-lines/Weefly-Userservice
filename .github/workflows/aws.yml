@@ -20,22 +20,24 @@ jobs:
 
       - name: 🧹 Delete Old Backend Folder on EC2
         run: |
-          ssh -i key.pem -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} \
-            "rm -rf /home/${{ secrets.EC2_USER }}/Weefly-Userservice/src/userservice/backend"
+          ssh -i key.pem -o StrictHostKeyChecking=no ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOSTNAME }} \
+            "rm -rf /home/${{ secrets.EC2_USERNAME }}/Weefly-Userservice/src/userservice/backend"
 
       - name: 📦 Upload New Backend Folder to EC2
         run: |
           scp -i key.pem -o StrictHostKeyChecking=no -r src/userservice/backend \
-            ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/home/${{ secrets.EC2_USER }}/Weefly-Userservice/src/userservice/
+            ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOSTNAME }}:/home/${{ secrets.EC2_USERNAME }}/Weefly-Userservice/src/userservice/
 
       - name: 🚀 Install & Restart Node.js App with PM2
         run: |
-          ssh -i key.pem -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
-            cd /home/${{ secrets.EC2_USER }}/Weefly-Userservice/src/userservice/backend/
+          ssh -i key.pem -o StrictHostKeyChecking=no ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOSTNAME }} << 'EOF'
+            cd /home/${{ secrets.EC2_USERNAME }}/Weefly-Userservice/src/userservice/backend/
             npm install
             if pm2 describe user-service > /dev/null; then
+              echo "🔁 Restarting PM2 process: user-service"
               pm2 restart user-service
             else
-              pm2 start Server.js --name user-service
+              echo "🚀 Starting new PM2 process using npm script: run prod"
+              pm2 start npm --name "user-service" -- run prod
             fi
           EOF
