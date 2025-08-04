@@ -22,10 +22,10 @@ const connectDb = require("./config/Db.js");
 dotenv.config();
 const app = express();
 
-if (process.env.CRON === "yes") {
-  require("./services/Promotion.js");
-  console.log("Running cron Job");
-}
+// if (process.env.CRON === "yes") {
+//   require("./services/Promotion.js");
+//   console.log("Running cron Job");
+// }
 
 const kycdocumentdirectory = path.join(__dirname, "kycdocuments");
 
@@ -72,9 +72,6 @@ app.use("/userapi", pannelAccessRoutes);
 app.use("/userapi", notificationRoute);
 app.use("/userapi", guestRoute);
 app.use("/userapi", getUserDetailRoute);
-app.get("/userapi/check", async (req, res) => {
-  return res.status(200).send("Pipeline check 111");
-});
 app.use("/kycdocuments", express.static(kycdocumentdirectory));
 
 connectDb();
