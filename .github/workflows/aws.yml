@@ -25,10 +25,11 @@ jobs:
       - name: Deploy to EC2
         run: |
           ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ubuntu@${{ secrets.EC2_HOST }} << 'EOF'
-            cd /home/ubuntu/Weefly-Userservice/
+            cd /home/ubuntu/Weefly-Userservice
 
-           
-            # Pull latest changes from repo
+            # Discard any local changes (be careful!)
+            git reset --hard HEAD
+            git clean -fd
             git pull origin main
 
             # Fix file permissions
