@@ -71,6 +71,9 @@ app.use("/userapi", pannelAccessRoutes);
 app.use("/userapi", notificationRoute);
 app.use("/userapi", guestRoute);
 app.use("/userapi", getUserDetailRoute);
+app.get("/userapi/get",async (req,res) => {
+  return res.status(200).send("Pipeline check")
+});
 app.use("/kycdocuments", express.static(kycdocumentdirectory));
 
 connectDb();
