@@ -40,7 +40,7 @@ const allowedOrigins = [
 
 
 app.get("/userapi/get",async (req,res) => {
-  return res.status(200).send("Pipeline check 1")
+  return res.status(200).send("Pipeline check 11")
 });
 
 // Middleware to reject requests with unauthorized origin
