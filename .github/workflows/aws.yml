@@ -1,9 +1,10 @@
+
 name: Deploy Userservice Backend to EC2 (Full Replace)
 
 on:
   push:
     branches:
-      - main  # Trigger deployment when pushing to main
+      - main  # Change if using a different branch
 
 jobs:
   deploy:
@@ -28,19 +29,14 @@ jobs:
           scp -i key.pem -o StrictHostKeyChecking=no -r src/userservice/backend \
             ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/home/${{ secrets.EC2_USER }}/Weefly-Userservice/src/userservice/
 
-      - name: 🚀 Install & Restart Node.js App with PM2 in Production Mode
+      - name: 🚀 Install & Restart Node.js App with PM2
         run: |
-          ssh -i key.pem -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << EOF
-            cd /home/${{ secrets.EC2_USER }}/Weefly-Userservice/src/userservice/backend
-
-            echo "Installing dependencies..."
+          ssh -i key.pem -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
+            cd /home/${{ secrets.EC2_USER }}/Weefly-Userservice/src/userservice/backend/
             npm install
-
-            echo "Restarting user-service with PM2 in NODE_ENV=prod mode..."
-            pm2 stop user-service || true
-            pm2 delete user-service || true
-
-            NODE_ENV=prod pm2 start Server.js --name user-service
-
-            pm2 save
+            if pm2 describe user-service > /dev/null; then
+              pm2 restart user-service
+            else
+              pm2 start Server.js --name user-service
+            fi
           EOF
