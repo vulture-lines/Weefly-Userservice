@@ -72,7 +72,7 @@ app.use("/userapi", notificationRoute);
 app.use("/userapi", guestRoute);
 app.use("/userapi", getUserDetailRoute);
 app.get("/userapi/get",async (req,res) => {
-  return res.status(200).send("Pipeline check")
+  return res.status(200).send("Pipeline check 1")
 });
 app.use("/kycdocuments", express.static(kycdocumentdirectory));
 
