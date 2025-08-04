@@ -25,24 +25,24 @@ jobs:
       - name: Deploy to EC2
         run: |
           ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ubuntu@${{ secrets.EC2_HOST }} << 'EOF'
-            cd /home/ubuntu/Weefly-Userservice/
+            cd /home/ubuntu/Weefly-Userservice/src/userservice
 
-            # Discard any local changes that would block git pull
+            # Discard local changes that might block pull
             git reset --hard HEAD
+            git clean -fd
 
-            # Pull latest changes from repo
+            # Pull latest code
             git pull origin main
 
-            # Fix file permissions
+            # Fix permissions just in case
             sudo chown -R ubuntu:ubuntu .
             chmod -R u+rw .
 
-            cd src/userservice/backend
-            
-            # Install dependencies
+            # Move to backend and install
+            cd backend
             npm install
 
-            # Restart the app with PM2
+            # Restart PM2
             pm2 delete user-service || true
             pm2 start npm --name "user-service" -- run prod
           EOF
