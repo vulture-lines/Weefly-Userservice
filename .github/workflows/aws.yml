@@ -3,7 +3,7 @@ name: Deploy Userservice Backend to EC2 (Full Replace)
 on:
   push:
     branches:
-      - main  # Change if using a different branch
+      - main  # Adjust if using a different branch
 
 jobs:
   deploy:
@@ -13,22 +13,22 @@ jobs:
       - name: 📥 Checkout Code
         uses: actions/checkout@v4
 
-      - name: 🔐 Add EC2 SSH Key
+      - name: 🔐 Setup EC2 SSH Key
         run: |
           echo "${{ secrets.EC2_SSH_KEY }}" > key.pem
           chmod 600 key.pem
 
-      - name: 🧹 Delete Old Backend Folder on EC2
+      - name: 🧹 Delete Old Backend on EC2
         run: |
           ssh -i key.pem -o StrictHostKeyChecking=no ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOSTNAME }} \
             "rm -rf /home/${{ secrets.EC2_USERNAME }}/Weefly-Userservice/src/userservice/backend"
 
-      - name: 📦 Upload New Backend Folder to EC2
+      - name: 📦 Upload New Backend to EC2
         run: |
           scp -i key.pem -o StrictHostKeyChecking=no -r src/userservice/backend \
             ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOSTNAME }}:/home/${{ secrets.EC2_USERNAME }}/Weefly-Userservice/src/userservice/
 
-      - name: 🚀 Install & Restart Node.js App with PM2
+      - name: 🚀 Install Dependencies & Start App with PM2
         run: |
           ssh -i key.pem -o StrictHostKeyChecking=no ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOSTNAME }} << 'EOF'
             cd /home/${{ secrets.EC2_USERNAME }}/Weefly-Userservice/src/userservice/backend/
@@ -37,7 +37,7 @@ jobs:
               echo "🔁 Restarting PM2 process: user-service"
               pm2 restart user-service
             else
-              echo "🚀 Starting new PM2 process using npm script: run prod"
+              echo "🚀 Starting PM2 process: user-service"
               pm2 start npm --name "user-service" -- run prod
             fi
           EOF
