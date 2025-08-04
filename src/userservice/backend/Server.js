@@ -39,6 +39,9 @@ const allowedOrigins = [
 ];
 
 
+app.get("/userapi/get",async (req,res) => {
+  return res.status(200).send("Pipeline check 1")
+});
 
 // Middleware to reject requests with unauthorized origin
 app.use((req, res, next) => {
@@ -71,9 +74,7 @@ app.use("/userapi", pannelAccessRoutes);
 app.use("/userapi", notificationRoute);
 app.use("/userapi", guestRoute);
 app.use("/userapi", getUserDetailRoute);
-app.get("/userapi/get",async (req,res) => {
-  return res.status(200).send("Pipeline check 1")
-});
+
 app.use("/kycdocuments", express.static(kycdocumentdirectory));
 
 connectDb();
