@@ -39,13 +39,14 @@ const allowedOrigins = [
 ];
 
 
-app.get("/userapi/get",async (req,res) => {
-  return res.status(200).send("Pipeline check 11")
-});
+
 
 // Middleware to reject requests with unauthorized origin
 app.use((req, res, next) => {
   const origin = req.headers.origin || req.headers.referer;
+  if (req.path.startsWith("/userapi/get")) {
+    return next();
+  }
 
   if (allowedOrigins.includes(origin)) {
     next(); // origin is allowed
@@ -66,6 +67,9 @@ app.use(
 app.use(bodyParser.json({ limit: "10mb" }));
 app.use(bodyParser.urlencoded({ limit: "10mb", extended: true }));
 app.use(cookieParser());
+app.get("/userapi/get",async (req,res) => {
+  return res.status(200).send("Pipeline check 11")
+});
 app.use("/userapi", userRoute);
 app.use("/userapi", otpRoute);
 app.use("/userapi", agentRoute);
