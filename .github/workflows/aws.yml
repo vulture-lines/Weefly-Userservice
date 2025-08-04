@@ -1,49 +1,45 @@
-name: Deploy UserService Backend
+name: Deploy Userservice Backend to EC2 via PM2
 
 on:
   push:
     branches:
-      - main
-    paths:
-      - 'src/userservice/backend/**'
+      - main  # Adjust if needed
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+      - name: 📥 Checkout Source Code
+        uses: actions/checkout@v4
 
-      - name: Setup SSH
+      - name: 🔐 Setup SSH Key
         run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
+          echo "${{ secrets.EC2_SSH_KEY }}" > key.pem
+          chmod 600 key.pem
 
-      - name: Deploy to EC2
+      - name: 🧹 Remove Existing Backend on EC2
         run: |
-          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ubuntu@${{ secrets.EC2_HOST }} << 'EOF'
-            echo "Cleaning repo"
-            cd /home/ubuntu/Weefly-Userservice/src/userservice
+          ssh -i key.pem -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} \
+            "rm -rf /home/${{ secrets.EC2_USER }}/Weefly-Userservice/src/userservice/backend/*"
 
-            # Discard all local changes and untracked files
-            git reset --hard HEAD
-            git clean -fd
+      - name: 📦 Upload Backend Folder to EC2
+        run: |
+          scp -i key.pem -o StrictHostKeyChecking=no -r src/userservice/backend/ \
+            ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/home/${{ secrets.EC2_USER }}/Weefly-Userservice/src/userservice/backend/
 
-            echo "Pulling latest changes"
-            git pull origin main
-
-            echo "Fixing permissions"
-            sudo chown -R ubuntu:ubuntu .
-            chmod -R u+rw .
-
-            echo "Installing dependencies"
-            cd backend
+      - name: 🚀 Install & Restart Node App using PM2 (user-service)
+        run: |
+          ssh -i key.pem -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
+            cd /home/${{ secrets.EC2_USER }}/Weefly-Userservice/src/userservice/backend/
             npm install
 
-            echo "Restarting with PM2"
-            pm2 delete user-service || true
-            pm2 start npm --name "user-service" -- run prod
+            # Restart or start the app using PM2 with name 'user-service'
+            if pm2 describe user-service > /dev/null; then
+              echo "🔁 Restarting existing PM2 process: user-service"
+              pm2 restart user-service
+            else
+              echo "🚀 Starting new PM2 process: user-service"
+              pm2 start Server.js --name user-service
+            fi
           EOF
