@@ -976,3 +976,17 @@ exports.createToken = async (req, res) => {
     return res.status(500).send("Internal Server Error");
   }
 };
+
+exports.findUserById = async (req, res) => {
+  const id = req.params.userId;
+  try {
+    const user = await userDetails.findById(id);
+    if (user) {
+      return res.status(200).json({ userdetail: user });
+    } else {
+      res.status(404).json({ message: "User not found" });
+    }
+  } catch (error) {
+    console.log(error);
+  }
+};

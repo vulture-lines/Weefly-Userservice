@@ -13,7 +13,7 @@ router.get("/getusers",userController.getUserDetail); // Get User Details API
 router.put("/updateuser/:userId", userController.updateUser); //Update Admin Status
 router.put("/userstatus/:userId", userController.userStatus); //Update Admin Status
 router.get("/getuserprofile",userController.getUserProfileDetails);  // Get User Details API for Profile
-
+router.get("/getuser/:userId",userController.findUserById);
 // User to Agent Switching
 router.post("/sendrequest",userController.sendRequestDetails); // API to send request to admin for User to Agent
 router.get("/getuseragent/:email", userController.getUserAgentByEmail);
