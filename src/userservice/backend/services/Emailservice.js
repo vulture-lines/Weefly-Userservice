@@ -20,7 +20,7 @@ const sendEmailOTP = (email, otp) => {
   const mailOptions = {
     from: process.env.EMAILUSER, // Sender's email
     to: email, // Recipient's email
-    subject: "Weefly OTP Verfication",
+    subject: "WeeFly OTP Verfication",
     text: `Dear User, your One-Time Password (OTP) for resetting your password is: ${otp}. This code is valid for 5 minutes. Please do not share it with anyone.`,
   };
 
@@ -42,13 +42,13 @@ const agentDocumentRecievedEmail = (email, Name) => {
   const mailOptions = {
     from: process.env.EMAILUSER, // Sender's email
     to: email, // Recipient's email
-    subject: "Welcome to Weefly",
+    subject: "Welcome to WeeFly",
     html: `
       <p>Dear ${Name},</p>
-      <p>Welcome to the Weefly family!</p>
+      <p>Welcome to the WeeFly family!</p>
       <p>We have received your KYC documents and they are currently under review. Once the verification process is complete, our team will get back to you shortly.</p>
-      <p>If you have any queries, please feel free to contact us at <a href="mailto:weeflytestmail@gmail.com">weeflytestmail@gmail.com</a>.</p>
-      <p>Best regards,<br>The Weefly Team</p>
+      <p>If you have any queries, please feel free to contact us at <a href="mailto:WeeFlytestmail@gmail.com">WeeFlytestmail@gmail.com</a>.</p>
+      <p>Best regards,<br>The WeeFly Team</p>
     `,
   };
 
@@ -70,13 +70,13 @@ const agentNewDocumentRecievedEmail = (email, Name) => {
   const mailOptions = {
     from: process.env.EMAILUSER, // Sender's email
     to: email, // Recipient's email
-    subject: "Welcome to Weefly",
+    subject: "Welcome to WeeFly",
     html: `
       <p>Dear ${Name},</p>
-      <p>Welcome to the Weefly family!</p>
+      <p>Welcome to the WeeFly family!</p>
       <p>We have received your updated KYC documents and they are currently under review. Once the verification process is complete, our team will get back to you shortly.</p>
-      <p>If you have any queries, please feel free to contact us at <a href="mailto:weeflytestmail@gmail.com">weeflytestmail@gmail.com</a>.</p>
-      <p>Best regards,<br>The Weefly Team</p>
+      <p>If you have any queries, please feel free to contact us at <a href="mailto:WeeFlytestmail@gmail.com">WeeFlytestmail@gmail.com</a>.</p>
+      <p>Best regards,<br>The WeeFly Team</p>
     `,
   };
 
@@ -101,12 +101,12 @@ const agentApprovedEmail = (email, Name) => {
   const mailOptions = {
     from: process.env.EMAILUSER, // Sender's email
     to: email, // Recipient's email
-    subject: "Welcome to Weefly! Your Agent Account is Ready",
+    subject: "Welcome to WeeFly! Your Agent Account is Ready",
     html: `
       <p>Dear ${Name},</p>
-      <p>Welcome to our Weefly family! Your KYC documents have been verified successfully and you can now access our agent panel at <a href=${process.env.AGENT_PANEL_URL}> Agent Pannel </a> with the credentials you created.</p>
-      <p>If you have any queries, please feel free to contact us at <a href="mailto:weeflytestmail@gmail.com">weeflytestmail@gmail.com</a>.</p>
-      <p>Best regards,<br>The Weefly Team</p>
+      <p>Welcome to our WeeFly family! Your KYC documents have been verified successfully and you can now access our agent panel at <a href=${process.env.AGENT_PANEL_URL}> Agent Pannel </a> with the credentials you created.</p>
+      <p>If you have any queries, please feel free to contact us at <a href="mailto:WeeFlytestmail@gmail.com">WeeFlytestmail@gmail.com</a>.</p>
+      <p>Best regards,<br>The WeeFly Team</p>
     `,
   };
 
@@ -132,14 +132,14 @@ const agentRejectedEmail = (email, Name, rejectionReason, resubmissionLink) => {
   const mailOptions = {
     from: process.env.EMAILUSER,
     to: email,
-    subject: "Weefly KYC Verification Update - Action Required",
+    subject: "WeeFly KYC Verification Update - Action Required",
     html: `
       <p>Dear ${Name},</p>
-      <p>Thank you for submitting your KYC documents to Weefly. After careful review, we couldn't approve your application for the following reason:</p>
+      <p>Thank you for submitting your KYC documents to WeeFly. After careful review, we couldn't approve your application for the following reason:</p>
       <p><strong>${reason}</strong></p>
-      <p>Please correct these issues and resubmit your documents through our portal: <a href="${resubmissionLink}">Update KYC</a>. If you need any clarification, please contact us at <a href="mailto:weeflytestmail@gmail.com">weeflytestmail@gmail.com</a>.</p>
+      <p>Please correct these issues and resubmit your documents through our portal: <a href="${resubmissionLink}">Update KYC</a>. If you need any clarification, please contact us at <a href="mailto:WeeFlytestmail@gmail.com">WeeFlytestmail@gmail.com</a>.</p>
       <p>We appreciate your patience and look forward to welcoming you to our agent network.</p>
-      <p>Best regards,<br>The Weefly Team</p>
+      <p>Best regards,<br>The WeeFly Team</p>
     `,
   };
 
@@ -212,14 +212,14 @@ const userRejectedEmail = (email, Name, rejectionReason, resubmissionLink) => {
   const mailOptions = {
     from: process.env.EMAILUSER,
     to: email,
-    subject: "Weefly User to Agent request Update - Action Required",
+    subject: "WeeFly User to Agent request Update - Action Required",
     html: `
       <p>Dear ${Name},</p>
       <p>Thank you for requesting to become an agent, we couldn't approve your application for the following reason:</p>
       <p><strong>${reason}</strong></p>
-      <p>Please correct these issues and resubmit your details through our portal: <a href="${resubmissionLink}">Update Details</a>. If you need any clarification, please contact us at <a href="mailto:weeflytestmail@gmail.com">weeflytestmail@gmail.com</a>.</p>
+      <p>Please correct these issues and resubmit your details through our portal: <a href="${resubmissionLink}">Update Details</a>. If you need any clarification, please contact us at <a href="mailto:WeeFlytestmail@gmail.com">WeeFlytestmail@gmail.com</a>.</p>
       <p>We appreciate your patience and look forward to welcoming you to our agent network.</p>
-      <p>Best regards,<br>The Weefly Team</p>
+      <p>Best regards,<br>The WeeFly Team</p>
     `,
   };
 
@@ -246,9 +246,9 @@ const ticketConfirmEmail = (email, Name, ticketId, ticketConfirmUrl) => {
       <p>We’re happy to inform you that your ticket has been successfully confirmed.</p>
       <p><strong>Ticket ID: ${ticketId}</strong></p>
       <p>You can view or manage your ticket by visiting the following link: <a href="${ticketConfirmUrl}">View Ticket</a>.</p>
-      <p>If you have any questions, feel free to contact our support team at <a href="mailto:weeflytestmail@gmail.com">weeflytestmail@gmail.com</a>.</p>
-      <p>Thank you for choosing Weefly. We look forward to assisting you!</p>
-      <p>Best regards,<br>The Weefly Team</p>
+      <p>If you have any questions, feel free to contact our support team at <a href="mailto:WeeFlytestmail@gmail.com">WeeFlytestmail@gmail.com</a>.</p>
+      <p>Thank you for choosing WeeFly. We look forward to assisting you!</p>
+      <p>Best regards,<br>The WeeFly Team</p>
     `,
   };
 
@@ -291,7 +291,7 @@ const sendPromotionalEmail = (email) => {
           </a>
         </p>
         <p>Don't miss out – our best deals go to members first!</p>
-        <p>Best regards,<br>Weefly-Team</p>
+        <p>Best regards,<br>WeeFly-Team</p>
       `,
   };
 
