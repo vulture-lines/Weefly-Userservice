@@ -21,11 +21,12 @@ const connectDb = require("./config/Db.js");
 
 dotenv.config();
 const app = express();
-
-// if (process.env.CRON === "yes") {
-//   require("./services/Promotion.js");
-//   console.log("Running cron Job");
-// }
+app.use(bodyParser.json({ limit: "10mb" }));
+app.use(bodyParser.urlencoded({ limit: "10mb", extended: true }));
+if (process.env.CRON === "yes") {
+  require("./services/Promotion.js");
+  console.log("Running cron Job");
+}
 
 const kycdocumentdirectory = path.join(__dirname, "kycdocuments");
 
@@ -41,6 +42,12 @@ const allowedOrigins = [
 // Middleware to reject requests with unauthorized origin
 app.use((req, res, next) => {
   const origin = req.headers.origin || req.headers.referer;
+  if (req.path.startsWith("/userapi/verifyuseremail")) {
+    console.log("Works");
+    
+    return next();
+  }
+
   if (allowedOrigins.includes(origin)) {
     next(); // origin is allowed
   } else {
@@ -57,10 +64,7 @@ app.use(
 );
 
 // API Routes
-app.use(bodyParser.json({ limit: "10mb" }));
-app.use(bodyParser.urlencoded({ limit: "10mb", extended: true }));
 app.use(cookieParser());
-
 app.use("/userapi", userRoute);
 app.use("/userapi", otpRoute);
 app.use("/userapi", agentRoute);

@@ -25,4 +25,11 @@ const Agenttokengenerator = (id) => {
   return token;
 };
 
-module.exports = {Usertokengenerator,Admintokengenerator,Agenttokengenerator};
+const verificationToken =(email,userId)=>{
+  const token = jwt.sign({ email,userId}, process.env.VERIFICATION_KEY, {
+    expiresIn: "5m",
+    });
+  return token;
+}
+
+module.exports = {Usertokengenerator,Admintokengenerator,Agenttokengenerator,verificationToken};

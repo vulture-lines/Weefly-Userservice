@@ -1,6 +1,5 @@
 // controller/Guestcontroller.js
 const userDetails = require("../models/Userdb");
-const { encryptPassword } = require("../utils/Password");
 const Notify = require("./Notificationcontroller");
 
 exports.registerGuest = async (req, res) => {
@@ -9,10 +8,13 @@ exports.registerGuest = async (req, res) => {
   }
 
   const { payload } = req.body;
+  const { BillingDetails } = req.body;
+  const jwt = req.cookies.userjwt;
 
   // Extract and format the name
+  const Title = payload?.Name?.Title;
   const nameParts = payload?.Name?.NamePartList?.NamePart || [];
-  const Name = nameParts.join(" ");
+  const Name = Title ? `${Title}. ${nameParts.join(" ")}` : nameParts.join(" ");
 
   // Email
   const Emailaddress = payload?.Email?.trim();
@@ -24,23 +26,14 @@ exports.registerGuest = async (req, res) => {
     : rawIntlCode;
   const phoneNumber = payload?.MobilePhone?.Number?.trim() || "";
   const mobileNumber =
-    intlCode && phoneNumber ? `${intlCode}${phoneNumber}` : "N/A";
-
-  const addressFields = [
-    payload?.Address?.Company,
-    payload?.Address?.Flat,
-    payload?.Address?.BuildingName,
-    payload?.Address?.BuildingNumber,
-    payload?.Address?.Street,
-    payload?.Address?.Locality,
-    payload?.Address?.City,
-    payload?.Address?.Province,
-    payload?.Address?.Postcode,
-    payload?.Address?.CountryCode,
-  ];
+    intlCode && phoneNumber ? `${intlCode}-${phoneNumber}` : "N/A";
 
   // Filter out empty/null/undefined values and join with commas
-  const Address = addressFields.filter(Boolean).join(", ");
+  const ContactAddress = payload.Address;
+  let BillingAddress;
+  if (BillingDetails) {
+    BillingAddress = BillingDetails.Address;
+  }
 
   if (!Name || !Emailaddress) {
     return res
@@ -53,24 +46,82 @@ exports.registerGuest = async (req, res) => {
 
     const existingGuest = await userDetails.findOne({ Emailaddress: email });
     if (existingGuest) {
-      return res
-        .status(409)
-        .json({ message: "This email already exists", userId:existingGuest.id ,role: existingGuest.Currentrole});
+      if (jwt) {
+        let updated = false;
+
+        // Update Contact Address if not present
+        if (!existingGuest.ContactAddress) {
+          existingGuest.ContactAddress = ContactAddress;
+          existingGuest.markModified("ContactAddress");
+          updated = true;
+        }
+
+        // Update Billing Address if not present
+        if (!existingGuest.BillingAddress) {
+          existingGuest.BillingAddress = BillingAddress;
+          existingGuest.markModified("BillingAddress");
+          updated = true;
+        }
+
+        // Update Billing Address if it's provided and different
+        if (
+          BillingAddress &&
+          JSON.stringify(existingGuest.BillingAddress) !==
+            JSON.stringify(BillingAddress)
+        ) {
+          existingGuest.BillingAddress = BillingAddress;
+          existingGuest.markModified("BillingAddress");
+          updated = true;
+        }
+        // Update Name if it's provided and different
+        if (Name !== existingGuest.Name) {
+          existingGuest.Name = Name;
+          updated = true;
+        }
+
+        // Update Mobile Number if it's "Googleauth" OR differs from payload
+        if (
+          existingGuest.Mobilenumber === "Googleauth" ||
+          (mobileNumber !== "N/A" &&
+            existingGuest.Mobilenumber !== mobileNumber)
+        ) {
+          existingGuest.Mobilenumber = mobileNumber;
+          updated = true;
+        }
+
+        if (updated) {
+          await existingGuest.save();
+        }
+
+        return res
+          .status(200)
+          .json({ message: "Fetched!!", userId: existingGuest.id });
+      } else {
+        return res.status(409).json({
+          message: "This email already exists",
+          userId: existingGuest.id,
+          role: existingGuest.Currentrole,
+        });
+      }
     }
 
-    const guestUser = new userDetails({
+    const guestUserData = {
       Name,
       Mobilenumber: mobileNumber,
       Emailaddress: email,
-      Address: Address,
+      ContactAddress: ContactAddress,
       Password: "Guest",
       Usertype: "Guest",
       Currentrole: ["Guest"],
       Status: "Active",
-    });
+    };
 
+    if (BillingAddress) {
+      guestUserData.BillingAddress = BillingAddress;
+    }
+
+    const guestUser = new userDetails(guestUserData);
     await guestUser.save();
-
     await Notify.addNotification(
       `New guest registered: ${Name}`,
       "GuestRegistration",
@@ -78,7 +129,7 @@ exports.registerGuest = async (req, res) => {
       guestUser._id
     );
 
-    return res.status(201).json({guestId:guestUser.id});
+    return res.status(201).json({ userId: guestUser.id });
   } catch (error) {
     console.error("Guest registration error:", error);
     return res.status(500).json({ message: "Internal Server Error" });

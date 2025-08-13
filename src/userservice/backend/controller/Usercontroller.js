@@ -18,6 +18,9 @@ const { cookieencrypt, cookiedecrypt, getKey } = require("../utils/Cookie");
 const Jwttokengenerator = require("../utils/Jwt");
 const Emailservice = require("../services/Emailservice");
 const imagecloud = require("../config/Cloudinary");
+const mongoose = require("mongoose");
+const { Otherdetail } = require("../models/Otherdetail");
+const { sendOTP } = require("./Otpcontroller");
 
 // User Signup
 exports.userSignup = async (req, res) => {
@@ -25,57 +28,369 @@ exports.userSignup = async (req, res) => {
     return res.status(400).json({ error: "Missing request body" });
   }
   const { payload } = req.body;
-  const { Emailaddress, Name, Mobilenumber, Password } = payload;
+  const { Password } = payload;
+  const email = payload.email || payload.Emailaddress;
+  const properuserdata = email.trim();
+  const existinguser = await userDetails.findOne(
+    { Emailaddress: properuserdata },
+    { id: 1, Usertype: 1, Currentrole: 1 }
+  );
   try {
-    const properuserdata = Emailaddress.trim();
-    let encryptedpass;
     if (Password !== "Googleauth") {
-      encryptedpass = await encryptPassword(Password);
+      if (!existinguser) {
+        if (payload.finaldata) {
+          const { email, name, phone, Password, finaldata } = payload;
+          const properuserdata = email.trim();
+          let encryptedpass;
+          encryptedpass = await encryptPassword(Password);
+          const existinguser = await userDetails.findOne(
+            { Emailaddress: properuserdata },
+            { id: 1, Usertype: 1 }
+          );
+          if (
+            existinguser !== null &&
+            (existinguser.Usertype === "Agent" ||
+              existinguser.Usertype === "User")
+          ) {
+            return res.status(409).json({ message: "Email already exists" });
+          }
+          const newuser = new userDetails({
+            Name: name,
+            Mobilenumber: phone,
+            Emailaddress: properuserdata,
+            Password: encryptedpass,
+            Usertype: "User",
+            Currentrole: ["User"],
+            Status: "Inactive",
+            ContactAddress: finaldata.travellerDetails.ContactDetails.Address,
+            BillingAddress: finaldata.travellerDetails.BillingDetails.Address,
+          });
+
+          await newuser.save();
+          sendOTP(properuserdata);
+          return res.status(200).json({ message: "User created successfully" });
+        } else {
+          const { Emailaddress, Name, Mobilenumber, Password } = payload;
+          const properuserdata = Emailaddress.trim();
+          let encryptedpass;
+          encryptedpass = await encryptPassword(Password);
+          const existinguser = await userDetails.findOne(
+            { Emailaddress: properuserdata },
+            { id: 1, Usertype: 1 }
+          );
+
+          if (
+            existinguser !== null &&
+            (existinguser.Usertype === "Agent" ||
+              existinguser.Usertype === "User")
+          ) {
+            return res.status(409).json({ message: "Email already exists" });
+          }
+          const newuser = new userDetails({
+            Name,
+            Mobilenumber,
+            Emailaddress: properuserdata,
+            Password: encryptedpass,
+            Usertype: "User",
+            Currentrole: ["User"],
+            Status: "Inactive",
+          });
+
+          await newuser.save();
+          sendOTP(properuserdata);
+          return res.status(200).json({ message: "User created successfully" });
+        }
+      } else if (existinguser.Currentrole.includes("Guest")) {
+        if (payload.finaldata) {
+          const { email, name, phone, Password, finaldata } = payload;
+          console.log(finaldata);
+          const properuserdata = email.trim();
+          let encryptedpass;
+          encryptedpass = await encryptPassword(Password);
+          const existinguser = await userDetails.findOne(
+            { Emailaddress: properuserdata },
+            { id: 1, Usertype: 1 }
+          );
+          if (
+            existinguser !== null &&
+            (existinguser.Usertype === "Agent" ||
+              existinguser.Usertype === "User")
+          ) {
+            return res.status(409).json({ message: "Email already exists" });
+          }
+
+          existinguser.Name = name;
+          existinguser.Mobilenumber = phone;
+          existinguser.Emailaddress = properuserdata;
+          existinguser.Password = encryptedpass;
+          existinguser.Usertype = "User";
+          existinguser.Currentrole = ["User"];
+          existinguser.Status = "Inactive";
+          (existinguser.ContactAddress =
+            finaldata.travellerDetails.ContactDetails.Address),
+            (existinguser.BillingAddress =
+              finaldata.travellerDetails.BillingDetails.Address),
+            existinguser.markModified("ContactAddress");
+          existinguser.markModified("BillingAddress");
+          await existinguser.save();
+
+          sendOTP(properuserdata);
+          return res.status(200).json({ message: "User created successfully" });
+        } else {
+          const { Emailaddress, Name, Mobilenumber, Password } = payload;
+          const properuserdata = Emailaddress.trim();
+          let encryptedpass;
+          encryptedpass = await encryptPassword(Password);
+          const existinguser = await userDetails.findOne(
+            { Emailaddress: properuserdata },
+            { id: 1, Usertype: 1 }
+          );
+
+          if (
+            existinguser !== null &&
+            (existinguser.Usertype === "Agent" ||
+              existinguser.Usertype === "User")
+          ) {
+            return res.status(409).json({ message: "Email already exists" });
+          }
+          existinguser.Name = Name;
+          existinguser.Mobilenumber = Mobilenumber;
+          existinguser.Emailaddress = properuserdata;
+          existinguser.Password = encryptedpass;
+          existinguser.Usertype = "User";
+          existinguser.Currentrole = ["User"];
+          existinguser.Status = "Inactive";
+
+          await existinguser.save();
+          sendOTP(properuserdata);
+          return res.status(200).json({ message: "User created successfully" });
+        }
+      }
     } else {
-      encryptedpass = Password;
+      // Google Auth
+      if (
+        existinguser !== null &&
+        (existinguser.Usertype === "Agent" || existinguser.Usertype === "User")
+      ) {
+        return res.status(409).json({ message: "Email already exists" });
+      }
+      if (!existinguser) {
+        if (payload.finaldata) {
+          const { Emailaddress, Name, Mobilenumber, Password, finaldata } =
+            payload;
+          const properuserdata = Emailaddress.trim();
+          const existinguser = await userDetails.findOne(
+            { Emailaddress: properuserdata },
+            { id: 1, Usertype: 1 }
+          );
+          if (
+            existinguser !== null &&
+            (existinguser.Usertype === "Agent" ||
+              existinguser.Usertype === "User")
+          ) {
+            return res.status(409).json({ message: "Email already exists" });
+          }
+          const newuser = new userDetails({
+            Name,
+            Mobilenumber,
+            Emailaddress,
+            Password,
+            Usertype: "User",
+            Currentrole: ["User"],
+            Status: "Active",
+            ContactAddress: finaldata.travellerDetails.ContactDetails.Address,
+            BillingAddress: finaldata.travellerDetails.BillingDetails.Address,
+          });
+
+          await newuser.save();
+          const id = newuser.Emailaddress;
+          const userId = newuser.id;
+          const token = await Jwttokengenerator.Usertokengenerator(id, userId);
+          const key = await getKey();
+          const encryptedtoken = cookieencrypt(token, key);
+          return res
+            .status(201)
+            .cookie("userjwt", encryptedtoken, {
+              maxAge: 60 * 60 * 1000,
+              path: "/",
+            })
+            .send("Signup Successful!!");
+        } else {
+          const { Emailaddress, Name, Mobilenumber, Password } = payload;
+          const properuserdata = Emailaddress.trim();
+          const existinguser = await userDetails.findOne(
+            { Emailaddress: properuserdata },
+            { id: 1, Usertype: 1 }
+          );
+
+          if (
+            existinguser !== null &&
+            (existinguser.Usertype === "Agent" ||
+              existinguser.Usertype === "User")
+          ) {
+            return res.status(409).json({ message: "Email already exists" });
+          }
+          const newuser = new userDetails({
+            Name,
+            Mobilenumber,
+            Emailaddress: properuserdata,
+            Password: Password,
+            Usertype: "User",
+            Currentrole: ["User"],
+            Status: "Active",
+          });
+
+          await newuser.save();
+          const id = newuser.Emailaddress;
+          const userId = newuser.id;
+          const token = await Jwttokengenerator.Usertokengenerator(id, userId);
+          const key = await getKey();
+          const encryptedtoken = cookieencrypt(token, key);
+          return res
+            .status(201)
+            .cookie("userjwt", encryptedtoken, {
+              maxAge: 60 * 60 * 1000,
+              path: "/",
+            })
+            .send("Signup Successful!!");
+        }
+      } else if (existinguser.Currentrole.includes("Guest")) {
+        if (payload.finaldata) {
+          const { Emailaddress, Name, Mobilenumber, Password, finaldata } =
+            payload;
+          console.log(finaldata);
+          const properuserdata = Emailaddress.trim();
+          const existinguser = await userDetails.findOne(
+            { Emailaddress: properuserdata },
+            { id: 1, Usertype: 1 }
+          );
+          if (
+            existinguser !== null &&
+            (existinguser.Usertype === "Agent" ||
+              existinguser.Usertype === "User")
+          ) {
+            return res.status(409).json({ message: "Email already exists" });
+          }
+
+          existinguser.Name = Name;
+          existinguser.Mobilenumber = Mobilenumber;
+          existinguser.Emailaddress = properuserdata;
+          existinguser.Password = Password;
+          existinguser.Usertype = "User";
+          existinguser.Currentrole = ["User"];
+          existinguser.Status = "Active";
+          (existinguser.ContactAddress =
+            finaldata.travellerDetails.ContactDetails.Address),
+            (existinguser.BillingAddress =
+              finaldata.travellerDetails.BillingDetails.Address),
+            existinguser.markModified("ContactAddress");
+          existinguser.markModified("BillingAddress");
+          await existinguser.save();
+          const id = existinguser.Emailaddress;
+          const userId = existinguser.id;
+          const token = await Jwttokengenerator.Usertokengenerator(id, userId);
+          const key = await getKey();
+          const encryptedtoken = cookieencrypt(token, key);
+          return res
+            .status(201)
+            .cookie("userjwt", encryptedtoken, {
+              maxAge: 60 * 60 * 1000,
+              path: "/",
+            })
+            .send("Signup Successful!!");
+        } else {
+          const { Emailaddress, Name, Mobilenumber, Password } = payload;
+          const properuserdata = Emailaddress.trim();
+          const existinguser = await userDetails.findOne(
+            { Emailaddress: properuserdata },
+            { id: 1, Usertype: 1 }
+          );
+
+          if (
+            existinguser !== null &&
+            (existinguser.Usertype === "Agent" ||
+              existinguser.Usertype === "User")
+          ) {
+            return res.status(409).json({ message: "Email already exists" });
+          }
+          existinguser.Name = Name;
+          existinguser.Mobilenumber = Mobilenumber;
+          existinguser.Emailaddress = properuserdata;
+          existinguser.Password = Password;
+          existinguser.Usertype = "User";
+          existinguser.Currentrole = ["User"];
+          existinguser.Status = "Active";
+
+          await existinguser.save();
+          const id = existinguser.Emailaddress;
+          const userId = existinguser.id;
+          const token = await Jwttokengenerator.Usertokengenerator(id, userId);
+          const key = await getKey();
+          const encryptedtoken = cookieencrypt(token, key);
+          return res
+            .status(201)
+            .cookie("userjwt", encryptedtoken, {
+              maxAge: 60 * 60 * 1000,
+              path: "/",
+            })
+            .send("Signup Successful!!");
+        }
+      }
     }
-
-    const existinguser = await userDetails.findOne(
-      { Emailaddress: properuserdata },
-      { id: 1, Usertype: 1 }
-    );
-
-    if (
-      existinguser !== null &&
-      (existinguser.Usertype === "Agent" ||
-        existinguser.Usertype === "User" ||
-        existinguser.Usertype === "Guest")
-    ) {
-      return res.status(409).json({ message: "Email already exists" });
-    }
-    const newuser = new userDetails({
-      Name,
-      Mobilenumber,
-      Emailaddress: properuserdata,
-      Password: encryptedpass,
-      Usertype: "User",
-      Currentrole: ["User"],
-      Status: "Active",
-    });
-
-    await newuser.save();
-    const id = newuser.Emailaddress;
-    const userId = newuser.id;
-    const token = await Jwttokengenerator.Usertokengenerator(id, userId);
-    const key = await getKey();
-    const encryptedtoken = cookieencrypt(token, key);
-    res
-      .status(201)
-      .cookie("userjwt", encryptedtoken, {
-        maxAge: 60 * 60 * 1000,
-        path: "/",
-      })
-      .send("Signup Successful!!");
-
-    // return res.status(201).json({ message: "User Registered Successfully!!" });
   } catch (error) {
     console.error("Error in User Signup" + error);
     return res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+// Verify Email
+exports.verifyUserEmail = async (req, res) => {
+  const { token } = req.params;
+  try {
+    const secretKey = getKey();
+    const decryptedToken = cookiedecrypt(token, secretKey);
+    const decoded = JWT.verify(decryptedToken, process.env.VERIFICATION_KEY);
+    if (!decoded) {
+      return res.status(401).json({ message: "Invalid Token" });
+    }
+    const user = await userDetails.findById(decoded.userId);
+    if (!user) return res.status(400).send("User not found");
+    if (user) {
+      user.Status = "Active";
+      await user.save();
+      const id = user.Emailaddress;
+      const userId = user.id;
+      const token = await Jwttokengenerator.Usertokengenerator(id, userId);
+      const key = await getKey();
+      const encryptedtoken = cookieencrypt(token, key);
+      const profileUrl = process.env.PROFILE_URL;
+      const otherDetail = await Otherdetail.findOne(
+        { sessionId: userId },
+        { otherDetails: 1 }
+      ).sort({ _id: -1 });
+      if (otherDetail) {
+        const seatpage = process.env.SEAT_MAP_URL;
+        res
+          .status(200)
+          .cookie("userjwt", encryptedtoken, {
+            maxAge: 60 * 60 * 1000,
+            path: "/",
+          })
+          .redirect(seatpage);
+      } else {
+        res
+          .status(200)
+          .cookie("userjwt", encryptedtoken, {
+            maxAge: 60 * 60 * 1000,
+            path: "/",
+          })
+          .redirect(profileUrl);
+      }
+    }
+  } catch (err) {
+    console.log(err);
+
+    res.status(400).send("Invalid or expired token");
   }
 };
 
@@ -88,9 +403,31 @@ exports.userSignin = async (req, res) => {
         { Emailaddress: Emailaddress },
         { id: 1, Password: 1, Emailaddress: 1, Currentrole: 1, Status: 1 }
       );
-      if (!existinguser) {
+      if (
+        !existinguser ||
+        existinguser.Status === "Inactive" ||
+        existinguser.Currentrole.includes("Guest")
+      ) {
         res.status(400).send("User doesn't exist");
       } else {
+        if (
+          Password === "Googleauth" &&
+          existinguser.Currentrole.includes("User") &&
+          existinguser.Status === "Active"
+        ) {
+          const id = existinguser.Emailaddress;
+          const userId = existinguser.id;
+          const token = await Jwttokengenerator.Usertokengenerator(id, userId);
+          const key = await getKey();
+          const encryptedtoken = cookieencrypt(token, key);
+          return res
+            .status(200)
+            .cookie("userjwt", encryptedtoken, {
+              maxAge: 60 * 60 * 1000,
+              path: "/",
+            })
+            .send("Sign Successful!!");
+        }
         const authenticatinguser = await decryptPassword(
           Password,
           existinguser.Password
@@ -337,6 +674,15 @@ exports.getUserProfileDetails = async (req, res) => {
       const decodedPayload = JWT.verify(decryptedJwt, jwtKey);
       const email = decodedPayload.id;
       const users = await userDetails.findOne({ Emailaddress: email });
+      const otherDetail = await Otherdetail.findOne(
+        { sessionId: users.id },
+        { otherDetails: 1 }
+      ).sort({ _id: -1 });
+      if (otherDetail) {
+        return res
+          .status(200)
+          .json({ userdetail: users, otherDetails: otherDetail });
+      }
       res.status(200).json(users);
     } else {
       const { email } = req.query;
@@ -985,6 +1331,107 @@ exports.findUserById = async (req, res) => {
       return res.status(200).json({ userdetail: user });
     } else {
       res.status(404).json({ message: "User not found" });
+    }
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+exports.profileUpdate = async (req, res) => {
+  const { payload } = req.body;
+  const userjwt = req.cookies.userjwt;
+  if (!payload) {
+    return res.status(422).json({ message: "Invalid request" });
+  }
+  function formatDateToLocalMinute(date) {
+    const d = new Date(date);
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    const hours = String(d.getHours()).padStart(2, "0");
+    const minutes = String(d.getMinutes()).padStart(2, "0");
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+  }
+
+  try {
+    const { Emailaddress, Name, Phonenumber, Contactdetails, photoUrl } =
+      payload;
+    const secretKey = getKey();
+    const jwtKey = process.env.JWT_KEY;
+    const decryptedJwt = await cookiedecrypt(userjwt, secretKey);
+    const decodedPayload = JWT.verify(decryptedJwt, jwtKey);
+    id = decodedPayload.userId;
+    const user = await userDetails.findById(id);
+    let updated;
+    if (Emailaddress) {
+      user.Emailaddress = Emailaddress;
+      updated = true;
+    }
+    if (Name) {
+      user.Name = Name;
+      updated = true;
+    }
+    if (Phonenumber) {
+      user.Phonenumber = Phonenumber;
+      updated = true;
+    }
+    if (Contactdetails) {
+      user.ContactAddress = Contactdetails;
+      await user.markModified("ContactAddress");
+      updated = true;
+    }
+    if (photoUrl) {
+      user.Profileimage = photoUrl;
+      updated = true;
+    }
+    if (photoUrl && Name) {
+      const timestamp = Date.now();
+      const safeName = Name.replace(/\s+/g, "_");
+
+      // Match base64 string with allowed image types only
+      const base64Pattern = /^data:image\/(jpeg|png|jpg|gif|webp);base64,/i;
+      const match = photoUrl.match(base64Pattern);
+
+      if (!match) {
+        return res.status(422).json({
+          message:
+            "Only valid image formats (jpeg, png, jpg, gif, webp) are allowed",
+        });
+      }
+
+      const imageType = match[1].toLowerCase(); // "jpeg", "png", etc.
+      const filename = `${timestamp}_${safeName}.${imageType}`;
+      const folderPath = path.join(__dirname, "../userprofileimage");
+      const filePath = path.join(folderPath, filename);
+
+      if (!fs.existsSync(folderPath)) {
+        fs.mkdirSync(folderPath, { recursive: true });
+      }
+
+      const base64Data = photoUrl.replace(base64Pattern, "");
+      const imageBuffer = Buffer.from(base64Data, "base64");
+
+      // Save image locally
+      fs.writeFileSync(filePath, imageBuffer);
+
+      // Upload to Cloudinary
+      const uploadResponse = await imagecloud.uploader.upload(photoUrl, {
+        folder: "userprofileimage",
+        public_id: `${timestamp}_${safeName}`,
+        overwrite: true,
+        resource_type: "image",
+      });
+
+      // Save Cloudinary URL
+      user.Profileimage = uploadResponse.secure_url;
+      updated = true;
+    }
+
+    if (updated) {
+      const now = formatDateToLocalMinute(new Date());
+      user.Profileupdatedon = now;
+      await user.save();
+      return res.status(200).send("User updated");
     }
   } catch (error) {
     console.log(error);

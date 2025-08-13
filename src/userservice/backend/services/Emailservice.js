@@ -21,7 +21,7 @@ const sendEmailOTP = (email, otp) => {
     from: process.env.EMAILUSER, // Sender's email
     to: email, // Recipient's email
     subject: "WeeFly OTP Verfication",
-    text: `Dear User, your One-Time Password (OTP) for resetting your password is: ${otp}. This code is valid for 5 minutes. Please do not share it with anyone.`,
+    text: `Dear User, your One-Time Password (OTP) is ${otp}. This code is valid for 5 minutes. Please do not share it with anyone.`,
   };
 
   return new Promise((resolve, reject) => {
@@ -308,6 +308,54 @@ const sendPromotionalEmail = (email) => {
   });
 };
 
+const userVerifyEmail = (Name, email, token) => {
+  const verificationLink = `${process.env.VERIFY_EMAIL_URL}/${token}`;
+
+  const mailOptions = {
+    from: process.env.EMAILUSER,
+    to: email,
+    subject: "Email Verification",
+    html: `
+      <div style="font-family: Arial, sans-serif; color: #333; line-height: 1.6;">
+        <p>Dear <strong>${Name}</strong>,</p>
+
+        <p>
+          Thank you for registering with us! Please verify your email address by clicking the link below.
+          Once verified, you'll be able to get started with our services.
+        </p>
+
+        <p style="text-align: center; margin: 20px 0;">
+          <a href="${verificationLink}" style="
+            background-color: #000;
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 5px;
+            display: inline-block;
+            font-weight: bold;
+            cursor:pointer;
+          ">
+            Verify Email
+          </a>
+        </p>
+        <p>Best regards,<br><strong>The WeeFly Team</strong></p>
+      </div>
+    `,
+  };
+
+  return new Promise((resolve, reject) => {
+    transPorter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        console.error("Error in sending verification email:", error);
+        reject(error);
+      } else {
+        console.log("Verification email sent:", info.response);
+        resolve(info.response);
+      }
+    });
+  });
+};
+
 module.exports = {
   sendEmailOTP,
   agentDocumentRecievedEmail,
@@ -319,4 +367,5 @@ module.exports = {
   userRejectedEmail,
   ticketConfirmEmail,
   sendPromotionalEmail,
+  userVerifyEmail,
 };

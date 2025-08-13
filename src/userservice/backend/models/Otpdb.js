@@ -4,10 +4,10 @@ const otpSchema = new Otpdb.Schema({
   User:{
     type:Otpdb.Schema.Types.ObjectId
   },
-  PasswordresetOTP:{
+  VerificationOTP:{
     type:Number
   },
-  PasswordresetOTPExpiry:{
+  VerificationOTPExpiry:{
     type:String
   }
 });

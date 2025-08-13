@@ -6,7 +6,9 @@ const userschema = new Schema({
   Name: { type: String, required: true },
   Mobilenumber: { type: String, required: true },
   Emailaddress: { type: String, required: true },
-  Address: { type: String },
+  ContactAddress: { type: Schema.Types.Mixed },
+  BillingAddress: { type: Schema.Types.Mixed },
+  Profileimage: { type: String },
   Password: { type: String, required: true },
   Usertype: { type: String },
   Currentrole: { type: [String] },
@@ -30,8 +32,8 @@ const userschema = new Schema({
   Reapproved: { type: String },
   Reapprovetoken: { type: String },
   Reapproveddate: { type: String },
-  Flightdetails:{type:Schema.Types.Mixed}
- 
+  Flightdetails: { type: Schema.Types.Mixed },
+  Profileupdatedon: { type: String },
 });
 
 // Format date to "YYYY-MM-DDTHH:mm"
@@ -64,7 +66,7 @@ userschema.pre("save", function (next) {
   }
   if (this.Reapproved) {
     this.Reapproveddate = now;
-  } 
+  }
   next();
 });
 
