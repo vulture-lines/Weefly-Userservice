@@ -375,6 +375,9 @@ exports.verifyUserEmail = async (req, res) => {
           .cookie("userjwt", encryptedtoken, {
             maxAge: 60 * 60 * 1000,
             path: "/",
+            sameSite: "none",
+            secure: true,
+            httpOnly: false,
           })
           .redirect(seatpage);
       } else {
@@ -383,6 +386,9 @@ exports.verifyUserEmail = async (req, res) => {
           .cookie("userjwt", encryptedtoken, {
             maxAge: 60 * 60 * 1000,
             path: "/",
+            sameSite: "none",
+            secure: true,
+            httpOnly: false,
           })
           .redirect(profileUrl);
       }
@@ -1314,6 +1320,9 @@ exports.createToken = async (req, res) => {
         .cookie("userjwt", encryptedtoken, {
           maxAge: 60 * 60 * 1000,
           path: "/",
+          sameSite: "none",
+          secure: true,
+          httpOnly: false,
         })
         .send("Sign Successful!!");
     }

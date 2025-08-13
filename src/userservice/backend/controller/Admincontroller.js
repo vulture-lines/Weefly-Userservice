@@ -38,6 +38,9 @@ exports.adminSignin = async (req, res) => {
           .cookie("adminjwt", encryptedtoken, {
             maxAge: 60 * 60 * 1000,
             path: "/",
+            sameSite: "none",
+            secure: true,
+            httpOnly: false,
           })
           .send("Sign Successful!!");
       }

@@ -304,6 +304,9 @@ exports.agentSignin = async (req, res) => {
           .cookie("agentjwt", encryptedtoken, {
             maxAge: 60 * 60 * 1000,
             path: "/",
+            sameSite: "none",
+            secure: true,
+            httpOnly: false,
           })
           .send("Sign Successful!!");
       } else {
@@ -712,12 +715,14 @@ exports.agentUpdateKyc = async (req, res) => {
         await existinguser.save();
       }
       if (!existinguser.Address || existinguser.Mobilenumber === "0") {
-        if (payload.Address && payload.Phonenumber !=="0") {
+        if (payload.Address && payload.Phonenumber !== "0") {
           existinguser.Address = payload.Address;
-          existinguser.Mobilenumber=payload.Phonenumber;
+          existinguser.Mobilenumber = payload.Phonenumber;
           await existinguser.save();
         } else {
-          return res.status(422).json({ message: "Address && Phonenumber required !!" });
+          return res
+            .status(422)
+            .json({ message: "Address && Phonenumber required !!" });
         }
       }
       Emailservice.agentNewDocumentRecievedEmail(
@@ -797,6 +802,9 @@ exports.checkLoggedInUser = async (req, res) => {
         .cookie("agentjwt", encryptedtoken, {
           maxAge: 60 * 60 * 1000,
           path: "/",
+          sameSite: "none",
+          secure: true,
+          httpOnly: false,
         })
         .send("Sign Successful!!");
     } else {
