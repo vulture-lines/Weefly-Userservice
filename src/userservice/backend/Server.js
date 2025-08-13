@@ -15,7 +15,7 @@ const pannelAccessRoutes = require("./routes/Adminpannelaccess.js");
 const notificationRoute = require("./routes/Notification.js");
 const guestRoute = require("./routes/Guestroute");
 const getUserDetailRoute = require("./routes/Ticketbooking.js");
-
+const cookieRoute=require("../backend/routes/Cookie.js")
 // Importing database connection
 const connectDb = require("./config/Db.js");
 
@@ -74,6 +74,7 @@ app.use("/userapi", pannelAccessRoutes);
 app.use("/userapi", notificationRoute);
 app.use("/userapi", guestRoute);
 app.use("/userapi", getUserDetailRoute);
+app.use("/userapi", cookieRoute);
 app.use("/kycdocuments", express.static(kycdocumentdirectory));
 
 connectDb();
