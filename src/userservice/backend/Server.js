@@ -42,9 +42,7 @@ const allowedOrigins = [
 // Middleware to reject requests with unauthorized origin
 app.use((req, res, next) => {
   const origin = req.headers.origin || req.headers.referer;
-  if (req.path.startsWith("/userapi/verifyuseremail")) {
-    console.log("Works");
-    
+  if (req.path.startsWith("/userapi/verifyuseremail")) {    
     return next();
   }
 

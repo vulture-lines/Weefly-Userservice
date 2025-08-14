@@ -18,9 +18,10 @@ const { cookieencrypt, cookiedecrypt, getKey } = require("../utils/Cookie");
 const Jwttokengenerator = require("../utils/Jwt");
 const Emailservice = require("../services/Emailservice");
 const imagecloud = require("../config/Cloudinary");
-const mongoose = require("mongoose");
 const { Otherdetail } = require("../models/Otherdetail");
 const { sendOTP } = require("./Otpcontroller");
+
+const isProduction = process.env.NODE_ENV === "production";
 
 // User Signup
 exports.userSignup = async (req, res) => {
@@ -213,6 +214,10 @@ exports.userSignup = async (req, res) => {
             .cookie("userjwt", encryptedtoken, {
               maxAge: 60 * 60 * 1000,
               path: "/",
+              secure: true,
+              httpOnly: true,
+              sameSite: "None",
+              domain: isProduction ? ".weefly.africa" : undefined,
             })
             .send("Signup Successful!!");
         } else {
@@ -251,6 +256,10 @@ exports.userSignup = async (req, res) => {
             .cookie("userjwt", encryptedtoken, {
               maxAge: 60 * 60 * 1000,
               path: "/",
+              secure: true,
+              httpOnly: true,
+              sameSite: "None",
+              domain: isProduction ? ".weefly.africa" : undefined,
             })
             .send("Signup Successful!!");
         }
@@ -296,6 +305,10 @@ exports.userSignup = async (req, res) => {
             .cookie("userjwt", encryptedtoken, {
               maxAge: 60 * 60 * 1000,
               path: "/",
+              secure: true,
+              httpOnly: true,
+              sameSite: "None",
+              domain: isProduction ? ".weefly.africa" : undefined,
             })
             .send("Signup Successful!!");
         } else {
@@ -332,6 +345,10 @@ exports.userSignup = async (req, res) => {
             .cookie("userjwt", encryptedtoken, {
               maxAge: 60 * 60 * 1000,
               path: "/",
+              secure: true,
+              httpOnly: true,
+              sameSite: "None",
+              domain: isProduction ? ".weefly.africa" : undefined,
             })
             .send("Signup Successful!!");
         }
@@ -375,9 +392,10 @@ exports.verifyUserEmail = async (req, res) => {
           .cookie("userjwt", encryptedtoken, {
             maxAge: 60 * 60 * 1000,
             path: "/",
-            sameSite: "none",
             secure: true,
-            httpOnly: false,
+            httpOnly: true,
+            sameSite: "None",
+            domain: isProduction ? ".weefly.africa" : undefined,
           })
           .redirect(seatpage);
       } else {
@@ -386,9 +404,10 @@ exports.verifyUserEmail = async (req, res) => {
           .cookie("userjwt", encryptedtoken, {
             maxAge: 60 * 60 * 1000,
             path: "/",
-            sameSite: "none",
             secure: true,
-            httpOnly: false,
+            httpOnly: true,
+            sameSite: "None",
+            domain: isProduction ? ".weefly.africa" : undefined,
           })
           .redirect(profileUrl);
       }
@@ -431,6 +450,10 @@ exports.userSignin = async (req, res) => {
             .cookie("userjwt", encryptedtoken, {
               maxAge: 60 * 60 * 1000,
               path: "/",
+              secure: true,
+              httpOnly: true,
+              sameSite: "None",
+              domain: isProduction ? ".weefly.africa" : undefined,
             })
             .send("Sign Successful!!");
         }
@@ -454,6 +477,10 @@ exports.userSignin = async (req, res) => {
             .cookie("userjwt", encryptedtoken, {
               maxAge: 60 * 60 * 1000,
               path: "/",
+              secure: true,
+              httpOnly: true,
+              sameSite: "None",
+              domain: isProduction ? ".weefly.africa" : undefined,
             })
             .send("Sign Successful!!");
         } else {
@@ -483,6 +510,10 @@ exports.userSignin = async (req, res) => {
             .cookie("userjwt", encryptedtoken, {
               maxAge: 60 * 60 * 1000,
               path: "/",
+              secure: true,
+              httpOnly: true,
+              sameSite: "None",
+              domain: isProduction ? ".weefly.africa" : undefined,
             })
             .send("Sign Successful!!");
         } else {
@@ -1320,9 +1351,10 @@ exports.createToken = async (req, res) => {
         .cookie("userjwt", encryptedtoken, {
           maxAge: 60 * 60 * 1000,
           path: "/",
-          sameSite: "none",
           secure: true,
-          httpOnly: false,
+          httpOnly: true,
+          sameSite: "None",
+          domain: isProduction ? ".weefly.africa" : undefined,
         })
         .send("Sign Successful!!");
     }

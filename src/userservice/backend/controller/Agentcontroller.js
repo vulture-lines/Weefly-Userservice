@@ -22,7 +22,7 @@ const imagecloud = require("../config/Cloudinary");
 
 // Importing Notification Controller for sending notifications
 const Notify = require("./Notificationcontroller");
-
+const isProduction = process.env.NODE_ENV === "production";
 exports.agentSignup = async (req, res) => {
   if (!req.body) {
     return res.status(400).json({ error: "Missing request body" });
@@ -264,6 +264,10 @@ exports.agentSignin = async (req, res) => {
             .cookie("agentjwt", encryptedtoken, {
               maxAge: 60 * 60 * 1000,
               path: "/",
+              secure: true,
+              httpOnly: true,
+              sameSite: "None",
+              domain: isProduction ? ".weefly.africa" : undefined,
             })
             .send("Sign Successful!!");
         }
@@ -304,9 +308,10 @@ exports.agentSignin = async (req, res) => {
           .cookie("agentjwt", encryptedtoken, {
             maxAge: 60 * 60 * 1000,
             path: "/",
-            sameSite: "none",
             secure: true,
-            httpOnly: false,
+            httpOnly: true,
+            sameSite: "None",
+            domain: isProduction ? ".weefly.africa" : undefined,
           })
           .send("Sign Successful!!");
       } else {
@@ -802,9 +807,10 @@ exports.checkLoggedInUser = async (req, res) => {
         .cookie("agentjwt", encryptedtoken, {
           maxAge: 60 * 60 * 1000,
           path: "/",
-          sameSite: "none",
           secure: true,
-          httpOnly: false,
+          httpOnly: true,
+          sameSite: "None",
+          domain: isProduction ? ".weefly.africa" : undefined,
         })
         .send("Sign Successful!!");
     } else {

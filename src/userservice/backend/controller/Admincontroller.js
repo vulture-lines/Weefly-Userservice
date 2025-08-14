@@ -9,7 +9,7 @@ const adminDetails = require("../models/Admindb");
 const { encryptPassword, decryptPassword } = require("../utils/Password");
 const { cookieencrypt, cookiedecrypt, getKey } = require("../utils/Cookie");
 const Jwttokengenerator = require("../utils/Jwt");
-
+const isProduction = process.env.NODE_ENV === "production";
 // Admin Sign-In
 exports.adminSignin = async (req, res) => {
   const { Emailaddress, Password } = req.body;
@@ -38,9 +38,10 @@ exports.adminSignin = async (req, res) => {
           .cookie("adminjwt", encryptedtoken, {
             maxAge: 60 * 60 * 1000,
             path: "/",
-            sameSite: "none",
             secure: true,
-            httpOnly: false,
+            httpOnly: true,
+            sameSite: "None",
+            domain: isProduction ? ".weefly.africa" : undefined,
           })
           .send("Sign Successful!!");
       }

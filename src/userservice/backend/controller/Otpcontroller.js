@@ -19,7 +19,7 @@ const Jwttokengenerator = require("../utils/Jwt");
 const generateOTP = () => {
   return crypto.randomInt(1000, 9999).toString();
 };
-
+const isProduction = process.env.NODE_ENV === "production";
 // Function to handle OTP request
 exports.sendOTP = async (email) => {
   try {
@@ -49,7 +49,7 @@ exports.sendOTP = async (email) => {
 // Function to verify OTP
 exports.validateOTP = async (req, res) => {
   const { email, inputOtp } = req.body;
-  let Otp = parseInt(inputOtp, 10); 
+  let Otp = parseInt(inputOtp, 10);
 
   if (isNaN(Otp)) {
     throw new Error("OTP Must be integer");
@@ -89,6 +89,10 @@ exports.validateOTP = async (req, res) => {
       .cookie("userjwt", encryptedtoken, {
         maxAge: 60 * 60 * 1000,
         path: "/",
+        secure: true,
+        httpOnly: true,
+        sameSite: "None",
+        domain: isProduction ? ".weefly.africa" : undefined,
       })
       .send("Signup Successful!!");
   } catch (error) {
